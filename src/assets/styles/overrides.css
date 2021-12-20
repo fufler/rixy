@@ -5,6 +5,7 @@
 
 .v-sidebar-menu .vsm--toggle-btn {
   order: -1;
+  flex-shrink: 0;
 }
 
 .v-sidebar-menu.vsm_collapsed .vsm--list {
