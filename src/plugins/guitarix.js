@@ -221,23 +221,28 @@ const GuitarixPlugin = {
         fxs: [],
         menuExpanded: false
       },
+
       getters: {
         online (state) {
           return state.online
         },
+
         menuExpanded (state) {
           return state.menuExpanded
         },
+
         activeFxs (state) {
           return state
             .fxs
             .filter(fx => fx.box_visible)
         },
+
         inactiveFxs (state) {
           return state
             .fxs
             .filter(fx => !fx.box_visible)
         },
+
         fxById: (state) => (id) => {
           return state.fxs.find(fx => fx.id === id)
         }
@@ -246,6 +251,7 @@ const GuitarixPlugin = {
         setOnlineStatus ({ commit }, online) {
           commit('setOnlineStatus', online)
         },
+
         setMenuExpanded ({ commit }, menuExpanded) {
           commit('setMenuExpanded', menuExpanded)
         },
@@ -270,6 +276,7 @@ const GuitarixPlugin = {
             return !fxIgnoreList.includes(fx.id)
           }))
         },
+
         insertFx ({ dispatch }, { fx, before, stereo }) {
           guitarixSocket.sendMessage(
             'insert_rack_unit',
@@ -282,6 +289,7 @@ const GuitarixPlugin = {
 
           dispatch('getFxs')
         },
+
         removeFx ({ dispatch }, fx) {
           guitarixSocket.sendMessage(
             'remove_rack_unit',
@@ -293,19 +301,23 @@ const GuitarixPlugin = {
 
           dispatch('getFxs')
         },
+
         removeAllActiveFxs ({ dispatch, getters }) {
           getters.activeFxs.forEach(fx => {
             dispatch('removeFx', fx)
           })
         }
       },
+
       mutations: {
         setOnlineStatus (state, online) {
           state.online = online
         },
+
         setMenuExpanded (state, menuExpanded) {
           state.menuExpanded = menuExpanded
         },
+
         setFxs (state, fxs) {
           state.fxs = fxs
         }

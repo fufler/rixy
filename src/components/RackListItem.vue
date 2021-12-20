@@ -135,6 +135,7 @@ export default {
 
       await this.getFxControl()
     },
+
     showFx () {
       this.$router.push({
         name: 'FxView',
