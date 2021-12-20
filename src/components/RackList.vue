@@ -5,6 +5,7 @@
       expanded: expanded
     }"
   >
+    <slot name="head" />
     <Amp />
 
     <draggable

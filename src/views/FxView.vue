@@ -1,5 +1,6 @@
 <template>
   <div class="h-screen fx-view">
+    <nav-bar />
     <FxControlHeader
       v-if="fx"
       :name="fx.name"
@@ -19,10 +20,12 @@ import throttle from 'lodash/throttle'
 
 import FxControlHeader from '@components/FxControlHeader'
 import FxControlList from '@components/FxControlList'
+import NavBar from '@components/NavBar'
 
 export default {
   name: 'FxView',
   components: {
+    NavBar,
     FxControlHeader,
     FxControlList
   },

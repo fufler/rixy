@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import RackView from '@views/RackView'
 import FxView from '@views/FxView'
+import TunerView from '@views/TunerView'
 
 Vue.use(VueRouter)
 
@@ -12,7 +13,12 @@ const routes = [
     component: RackView
   },
   {
-    path: '/:id',
+    path: '/tuner',
+    name: 'TunerView',
+    component: TunerView
+  },
+  {
+    path: '/rack/:id',
     name: 'FxView',
     component: FxView
   }
