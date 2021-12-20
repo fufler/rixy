@@ -100,13 +100,11 @@ export default {
     this.getFxControl()
   },
   methods: {
-    getFxControl () {
-      this.$guitarix.sendMessage({
-        method: 'queryunit',
-        params: [this.fx.id]
-      }, (control) => {
-        this.control = control
-      })
+    async getFxControl () {
+      this.control = await this.$guitarix.sendMessage(
+        'queryunit',
+        [this.fx.id]
+      )
     },
 
     toggleItem () {
@@ -126,7 +124,7 @@ export default {
       this.showFx()
     },
 
-    toggleFxPower () {
+    async toggleFxPower () {
       this.$guitarix.sendMessage({
         method: 'set',
         params: [
@@ -135,7 +133,7 @@ export default {
         ]
       })
 
-      this.getFxControl()
+      await this.getFxControl()
     },
     showFx () {
       this.$router.push({

@@ -4,12 +4,11 @@ import utils from '@utils'
  * TX: Transmitted
  * RX: Received
  * EX: Error
- * CB: Callback
  * QU: Queue
  */
 const { logger } = utils
 
-const GUITARIX_NAMESPACE = 'guitarix'
+export const GUITARIX_NAMESPACE = 'guitarix'
 
 const {
   VUE_APP_GUITARIX_IGNORE_FX: FX_IGNORE_LIST,
@@ -21,19 +20,56 @@ const fxIgnoreList = FX_IGNORE_LIST.split(',').map(fx => fx.trim())
 
 const useWebsocketBinaryFormat = ['1', 'true', true].includes(WEBSOCKET_USE_BINARY_FORMAT.trim())
 
-const methodsRequiringIds = [
+const methodsRequiringIds = new Set([
+  'bank_check_reparse',
+  'bank_get_contents',
+  'bank_get_filename',
+  'bank_insert_content',
+  'bank_insert_new',
+  'bank_remove',
   'banks',
+  'convert_preset',
+  'desc',
   'get',
+  'get_bank',
+  'get_last_midi_control_value',
+  'get_midi_controller_map',
+  'get_midi_feedback',
+  'get_oscilloscope_mul_buffer',
   'get_parameter',
+  'get_parameter_value',
+  'get_rack_unit_order',
+  'get_tuner_freq',
+  'get_tuner_note',
+  'get_tuner_switcher_active',
+  'get_tuning',
   'getstate',
-  'queryunit'
-]
+  'getversion',
+  'jack_cpu_load',
+  'ladspaloader_update_plugins',
+  'list',
+  'load_impresp_dirs',
+  'load_ladspalist',
+  'midi_get_config_mode',
+  'midi_size',
+  'parameterlist',
+  'plugin_load_ui',
+  'plugin_preset_list_load',
+  'pluginlist',
+  'presets',
+  'queryunit',
+  'read_audio',
+  'rename_bank',
+  'rename_preset'
+])
 
 class GuitarixSocket {
   /**
    * private methods
    */
   constructor (opts) {
+    this._msgId = 1
+
     this._init(opts)
   }
 
@@ -41,6 +77,7 @@ class GuitarixSocket {
     // store opts
     this._opts = opts
     this._store = opts.store
+    this.bus = opts.bus
 
     // create socket
     this._socket = new WebSocket(`ws://${opts.host}:${opts.port}`)
@@ -50,11 +87,9 @@ class GuitarixSocket {
     this._socket.onmessage = this._onMessage.bind(this)
     this._socket.onerror = this._onError.bind(this)
 
-    // utils
-    this._msgId = 1
     // create stores
     this._queue = []
-    this._callbacks = []
+    this._resolves = {}
 
     this._connected = false
 
@@ -66,9 +101,9 @@ class GuitarixSocket {
     this._connected = true
     this._store.dispatch(`${GUITARIX_NAMESPACE}/setOnlineStatus`, true)
 
-    this.sendMessage({
-      method: 'listen',
-      params: [
+    this.sendMessage(
+      'listen',
+      [
         'state',
         'freq',
         'display',
@@ -77,14 +112,12 @@ class GuitarixSocket {
         'param',
         'units_changed'
       ]
-    })
+    )
 
     if (this._queue.length) {
       logger('QU: ', this._queue)
 
-      this._queue.forEach(msg => {
-        this.sendMessage(msg)
-      })
+      this._queue.forEach(e => this.sendMessage(e.method, e.params).then(r => e.resolve(r)))
 
       this._queue = []
     }
@@ -98,36 +131,26 @@ class GuitarixSocket {
   }
 
   async _onMessage (response) {
+    let msg
     try {
       const jsonString = useWebsocketBinaryFormat ? await response.data.text() : response.data
 
-      var msg = JSON.parse(jsonString)
+      msg = JSON.parse(jsonString)
       logger('RX: ', msg)
     } catch (e) {
       logger('EX: ', e)
-    }
-
-    // something we requested
-    if (msg.id) {
-      const callbackable = this._callbacks.find(callback => callback.msg.id === parseInt(msg.id))
-
-      if (callbackable) {
-        this._callbacks = this._callbacks.filter(callback => callback.msg.id !== parseInt(msg.id))
-        callbackable.callback(msg.result)
-      }
-
       return
     }
 
-    // something changed guitarix-side
-    switch (msg.method) {
-      case 'set':
-        logger('RX [set]: ', msg)
-        break
-      default:
-        logger('RX [default]: ', msg)
-        break
+    // something we requested
+    const resolve = this._resolves[msg.id]
+    if (resolve != null) {
+      delete this._resolves[msg.id]
+      resolve(msg.result)
+      return
     }
+
+    this.bus.$emit(`guitarix :: ${msg.method}`, msg)
   }
 
   _onError (e) {
@@ -147,42 +170,43 @@ class GuitarixSocket {
   }
 
   /**
-   * helpers (internal)
-   */
-  _needsId (method) {
-    return methodsRequiringIds.includes(method)
-  }
-
-  /**
    * public methods
    */
-  sendMessage (msg, callback = false) {
-    // only add id to non-queued msgs
-    if (!msg.id && this._needsId(msg.method)) {
-      msg.id = this._msgId++
+  sendMessage (method, params = []) {
+    let _resolve
+    const promise = new Promise(resolve => { _resolve = resolve })
+
+    if (!this._connected) {
+      this._queue.unshift({ method, params, resolve: _resolve })
+      return promise
     }
 
-    if (callback) {
-      logger('CB:', msg, callback)
+    const msgId = this._msgId++
 
-      this._callbacks.push({
-        msg,
-        callback
-      })
+    this._resolves[msgId] = _resolve
+
+    const jsonrpcMsg = {
+      jsonrpc: '2.0',
+      method,
+      params
     }
 
-    if (this._connected) {
-      logger('TX: ', msg)
-
-      const jsonString = JSON.stringify(msg)
-      const payload = useWebsocketBinaryFormat ? new Blob([jsonString + '\n']) : jsonString
-
-      this._socket.send(payload)
-    } else {
-      this._queue.unshift(msg)
+    if (methodsRequiringIds.has(method)) {
+      jsonrpcMsg.id = msgId
     }
+
+    logger('TX: ', jsonrpcMsg)
+
+    const jsonString = JSON.stringify(jsonrpcMsg)
+    const payload = useWebsocketBinaryFormat ? new Blob([jsonString + '\n']) : jsonString
+
+    this._socket.send(payload)
+
+    return promise
   }
 }
+
+export const ACTION_GET_FXS = 'getFxs'
 
 const GuitarixPlugin = {
   install (Vue, opts = {}) {
@@ -191,6 +215,7 @@ const GuitarixPlugin = {
     // register vuex module
     opts.store.registerModule(GUITARIX_NAMESPACE, {
       namespaced: true,
+
       state: {
         online: true,
         fxs: [],
@@ -224,46 +249,47 @@ const GuitarixPlugin = {
         setMenuExpanded ({ commit }, menuExpanded) {
           commit('setMenuExpanded', menuExpanded)
         },
-        getFxs ({ commit }) {
-          guitarixSocket.sendMessage({
-            method: 'get',
-            params: [
+
+        async [ACTION_GET_FXS] ({ commit }) {
+          const plugins = await guitarixSocket.sendMessage(
+            'get',
+            [
               'sys.visible_mono_plugins',
               'sys.visible_stereo_plugins'
             ]
-          }, (plugins) => {
-            commit('setFxs', [
-              ...plugins['sys.visible_mono_plugins'],
-              ...plugins['sys.visible_stereo_plugins']
-            ].filter(fx => {
-              if (fxIgnoreList.includes(fx.id)) {
-                logger('IFX: ', fx.id)
-              }
+          )
 
-              return !fxIgnoreList.includes(fx.id)
-            }))
-          })
+          commit('setFxs', [
+            ...plugins['sys.visible_mono_plugins'],
+            ...plugins['sys.visible_stereo_plugins']
+          ].filter(fx => {
+            if (fxIgnoreList.includes(fx.id)) {
+              logger('IFX: ', fx.id)
+            }
+
+            return !fxIgnoreList.includes(fx.id)
+          }))
         },
         insertFx ({ dispatch }, { fx, before, stereo }) {
-          guitarixSocket.sendMessage({
-            method: 'insert_rack_unit',
-            params: [
+          guitarixSocket.sendMessage(
+            'insert_rack_unit',
+            [
               fx,
               before,
               stereo
             ]
-          })
+          )
 
           dispatch('getFxs')
         },
         removeFx ({ dispatch }, fx) {
-          guitarixSocket.sendMessage({
-            method: 'remove_rack_unit',
-            params: [
+          guitarixSocket.sendMessage(
+            'remove_rack_unit',
+            [
               fx.id,
               fx.stereo
             ]
-          })
+          )
 
           dispatch('getFxs')
         },

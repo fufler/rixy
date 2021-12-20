@@ -50,23 +50,21 @@ export default {
     this.getFxControl()
   },
   methods: {
-    getFxControl: throttle(function () {
+    getFxControl: throttle(async function () {
       const isViewingAmpFx = this.$route.params.id === 'ampstack'
 
       // here we want a straight callback from guitarix
       // to augment local state (mostly on/off status)
-      this.$guitarix.sendMessage({
-        method: 'queryunit',
-        params: [this.$route.params.id]
-      }, (controls) => {
-        this.controls = controls
-      })
+      this.controls = await this.$guitarix.sendMessage(
+        'queryunit',
+        [this.$route.params.id]
+      )
 
       // augment with amplifier controls if applicable
       if (isViewingAmpFx) {
-        this.$guitarix.sendMessage({
-          method: 'get_parameter',
-          params: [
+        this.augmentedControls = await this.$guitarix.sendMessage(
+          'get_parameter',
+          [
             // main
             'amp.out_master',
 
@@ -98,23 +96,21 @@ export default {
             'amp.feed_on_off',
             'amp.wet_dry'
           ]
-        }, (controls) => {
-          this.augmentedControls = controls
-        })
+        )
       }
     }, 350),
-    updateFxControl (fx, control, value) {
-      this.$guitarix.sendMessage({
-        method: 'set',
-        params: [
+
+    async updateFxControl (fx, control, value) {
+      this.$guitarix.sendMessage(
+        'set',
+        [
           fx.prop,
           fx.value
         ]
-      })
+      )
 
-      this.$nextTick(() => {
-        this.getFxControl()
-      })
+      await this.$nextTick()
+      this.getFxControl()
     }
   }
 }

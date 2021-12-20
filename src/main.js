@@ -64,10 +64,13 @@ Vue.component('VueSelect', VueSelect)
 
 Vue.use(VueSidebarMenu)
 
+Vue.prototype.$bus = new Vue()
+
 Vue.use(GuitarixPlugin, {
   host: GUITARIX_HOST,
   port: GUITARIX_PORT,
-  store
+  store,
+  bus: Vue.prototype.$bus
 })
 
 new Vue({
