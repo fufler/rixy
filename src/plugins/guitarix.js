@@ -110,7 +110,8 @@ class GuitarixSocket {
         'tuner',
         'presetlist_changed',
         'param',
-        'units_changed'
+        'units_changed',
+        'preset'
       ]
     )
 

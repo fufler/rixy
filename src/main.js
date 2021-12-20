@@ -26,7 +26,7 @@ import VueSidebarMenu from 'vue-sidebar-menu'
 
 import VueSelect from 'vue-select'
 
-import GuitarixPlugin from '@plugins/guitarix'
+import GuitarixPlugin, { ACTION_GET_FXS, GUITARIX_NAMESPACE } from '@plugins/guitarix'
 
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import 'animate.css'
@@ -73,8 +73,12 @@ Vue.use(GuitarixPlugin, {
   bus: Vue.prototype.$bus
 })
 
-new Vue({
+const vm = new Vue({
   router,
   store,
   render: h => h(App)
-}).$mount('#app')
+})
+
+vm.$bus.$on('guitarix :: preset_changed', () => vm.$store.dispatch(`${GUITARIX_NAMESPACE}/${ACTION_GET_FXS}`))
+
+vm.$mount('#app')
