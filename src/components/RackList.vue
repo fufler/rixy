@@ -9,7 +9,7 @@
 
     <draggable
       v-model="mono"
-      class="overflow-y-scroll border-8 border-secondary bg-primary rack-list-mono"
+      class="overflow-y-auto border-8 border-secondary bg-primary rack-list-mono"
       group="mono"
       handle=".handle"
       drag-class="dragging"
@@ -26,7 +26,7 @@
 
     <draggable
       v-model="stereo"
-      class="overflow-y-scroll border-8 border-t-0 border-secondary bg-primary rack-list-stereo"
+      class="overflow-y-auto border-8 border-t-0 border-secondary bg-primary rack-list-stereo"
       group="stereo"
       handle=".handle"
       drag-class="dragging"
