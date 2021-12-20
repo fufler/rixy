@@ -143,7 +143,8 @@ export default {
       })
     },
     closeAllSwipeActions () {
-      this.$refs.swipe.closeActions()
+      // eslint-disable-next-line no-unused-expressions
+      this.$refs.swipe?.close?.()
     }
   }
 }
