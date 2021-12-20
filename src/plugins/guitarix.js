@@ -80,7 +80,11 @@ class GuitarixSocket {
     this.bus = opts.bus
 
     // create socket
-    this._socket = new WebSocket(`ws://${opts.host}:${opts.port}`)
+    try {
+      this._socket = new WebSocket(`ws://${opts.host}:${opts.port}`)
+    } catch (e) {
+      return this._attemptReconnect()
+    }
 
     this._socket.onopen = this._onOpen.bind(this)
     this._socket.onclose = this._onClose.bind(this)
