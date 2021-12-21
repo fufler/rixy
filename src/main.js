@@ -74,8 +74,8 @@ Vue.use(VueSidebarMenu)
 Vue.prototype.$bus = new Vue()
 
 Vue.use(GuitarixPlugin, {
-  host: GUITARIX_HOST,
-  port: GUITARIX_PORT,
+  host: GUITARIX_HOST ?? location.hostname,
+  port: GUITARIX_PORT ?? location.port,
   store,
   bus: Vue.prototype.$bus
 })
