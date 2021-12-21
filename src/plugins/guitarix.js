@@ -213,6 +213,10 @@ class GuitarixSocket {
 
     this._socket.send(payload)
 
+    if (jsonrpcMsg.id == null) {
+      _resolve()
+    }
+
     return promise
   }
 }
