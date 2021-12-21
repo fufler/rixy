@@ -36,6 +36,10 @@ export default {
           title: 'Rack'
         },
         {
+          name: 'PresetsView',
+          title: 'Presets'
+        },
+        {
           name: 'TunerView',
           title: 'Tuner'
         }

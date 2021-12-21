@@ -54,6 +54,11 @@
   @apply bg-accent !important;
 }
 
+.v-sidebar-menu.vsm_expanded .vsm--item .vsm--link_level-1.selected {
+  @apply bg-accent !important;
+}
+
+
 .v-sidebar-menu .vsm--item_open .vsm--link.vsm--link_level-2 {
   @apply bg-primary;
 }

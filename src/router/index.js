@@ -2,15 +2,23 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import RackView from '@views/RackView'
 import FxView from '@views/FxView'
+import PresetsView from '@views/PresetsView'
 import TunerView from '@views/TunerView'
 
 Vue.use(VueRouter)
 
+export const ROUTE_RACK_VIEW = 'RackView'
+
 const routes = [
   {
     path: '/',
-    name: 'RackView',
+    name: ROUTE_RACK_VIEW,
     component: RackView
+  },
+  {
+    path: '/presets',
+    name: 'PresetsView',
+    component: PresetsView
   },
   {
     path: '/tuner',

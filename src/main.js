@@ -14,7 +14,11 @@ import {
   faEllipsisV,
   faPowerOff,
   faTrashAlt,
-  faUndo
+  faUndo,
+  faPlus,
+  faTrash,
+  faFileUpload,
+  faSave
 } from '@fortawesome/free-solid-svg-icons'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -26,7 +30,7 @@ import VueSidebarMenu from 'vue-sidebar-menu'
 
 import VueSelect from 'vue-select'
 
-import GuitarixPlugin, { ACTION_GET_FXS, GUITARIX_NAMESPACE } from '@plugins/guitarix'
+import GuitarixPlugin, { ACTION_GET_FXS, ACTION_LOAD_BANKS, GUITARIX_NAMESPACE } from '@plugins/guitarix'
 
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import 'animate.css'
@@ -52,7 +56,11 @@ library.add(
   faTrashAlt,
   faUndo,
   faExpand,
-  faCompress
+  faCompress,
+  faPlus,
+  faTrash,
+  faFileUpload,
+  faSave
 )
 
 Vue.component('FontAwesomeIcon', FontAwesomeIcon)
@@ -79,5 +87,6 @@ const vm = new Vue({
 })
 
 vm.$bus.$on('guitarix :: preset_changed', () => vm.$store.dispatch(`${GUITARIX_NAMESPACE}/${ACTION_GET_FXS}`))
+vm.$bus.$on('guitarix :: presetlist_changed', () => vm.$store.dispatch(`${GUITARIX_NAMESPACE}/${ACTION_LOAD_BANKS}`))
 
 vm.$mount('#app')

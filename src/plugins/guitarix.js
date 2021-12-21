@@ -222,6 +222,11 @@ class GuitarixSocket {
 }
 
 export const ACTION_GET_FXS = 'getFxs'
+export const ACTION_LOAD_BANKS = 'loadBanks'
+
+const MUTATION_SET_BANKS = 'setBanks'
+
+export const GETTER_BANKS = 'getBanks'
 
 const GuitarixPlugin = {
   install (Vue, opts = {}) {
@@ -234,6 +239,7 @@ const GuitarixPlugin = {
       state: {
         online: true,
         fxs: [],
+        banks: [],
         menuExpanded: false
       },
 
@@ -260,7 +266,9 @@ const GuitarixPlugin = {
 
         fxById: (state) => (id) => {
           return state.fxs.find(fx => fx.id === id)
-        }
+        },
+
+        [GETTER_BANKS]: state => state.banks
       },
       actions: {
         setOnlineStatus ({ commit }, online) {
@@ -290,6 +298,15 @@ const GuitarixPlugin = {
 
             return !fxIgnoreList.includes(fx.id)
           }))
+        },
+
+        async [ACTION_LOAD_BANKS] ({ commit }) {
+          const banks = await guitarixSocket.sendMessage(
+            'banks',
+            []
+          )
+
+          commit(MUTATION_SET_BANKS, banks)
         },
 
         insertFx ({ dispatch }, { fx, before, stereo }) {
@@ -335,6 +352,10 @@ const GuitarixPlugin = {
 
         setFxs (state, fxs) {
           state.fxs = fxs
+        },
+
+        [MUTATION_SET_BANKS] (state, banks) {
+          state.banks = banks
         }
       }
     }, {})
