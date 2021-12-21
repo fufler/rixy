@@ -35,7 +35,6 @@ import 'vue-select/dist/vue-select.css'
 
 import '@assets/styles/tailwind.css'
 import '@assets/styles/overrides.css'
-import '@worker'
 
 const {
   VUE_APP_GUITARIX_HOST: GUITARIX_HOST,

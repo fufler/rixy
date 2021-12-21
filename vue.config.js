@@ -13,7 +13,6 @@ module.exports = {
       .set('@store', resolve(__dirname, 'src/store'))
       .set('@utils', resolve(__dirname, 'src/utils'))
       .set('@views', resolve(__dirname, 'src/views'))
-      .set('@worker', resolve(__dirname, 'src/registerServiceWorker.js'))
   },
   pwa: {
     name: 'Rixy',
