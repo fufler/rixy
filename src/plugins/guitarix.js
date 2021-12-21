@@ -136,26 +136,32 @@ class GuitarixSocket {
   }
 
   async _onMessage (response) {
-    let msg
-    try {
-      const jsonString = useWebsocketBinaryFormat ? await response.data.text() : response.data
+    const jsonStrings = useWebsocketBinaryFormat ? (await response.data.text()).split('\n') : [response.data]
 
-      msg = JSON.parse(jsonString)
-      logger('RX: ', msg)
-    } catch (e) {
-      logger('EX: ', e)
-      return
+    for (const jsonString of jsonStrings) {
+      if (jsonString === '') {
+        continue
+      }
+
+      let msg
+      try {
+        msg = JSON.parse(jsonString)
+        logger('RX: ', msg)
+      } catch (e) {
+        logger('EX: ', e)
+        continue
+      }
+
+      // something we requested
+      const resolve = this._resolves[msg.id]
+      if (resolve != null) {
+        delete this._resolves[msg.id]
+        resolve(msg.result)
+        continue
+      }
+
+      this.bus.$emit(`guitarix :: ${msg.method}`, msg)
     }
-
-    // something we requested
-    const resolve = this._resolves[msg.id]
-    if (resolve != null) {
-      delete this._resolves[msg.id]
-      resolve(msg.result)
-      return
-    }
-
-    this.bus.$emit(`guitarix :: ${msg.method}`, msg)
   }
 
   _onError (e) {
