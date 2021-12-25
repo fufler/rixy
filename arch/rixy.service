@@ -1,0 +1,6 @@
+[Unit]
+Description=Rixy
+Wants=guitarix.service
+
+[Service]
+ExecStart=websockify --web=/usr/share/rixy 0.0.0.0:${RIXY_PORT} 127.0.0.1:${GUITARIX_RPC_PORT}

@@ -1,0 +1,67 @@
+# Maintainer: Gabriel Guldner <gabriel at guldner dot eu>
+
+# Contributor: NebulaNeko <chfsefefgesfen foxmail>
+# Contributor: Radek Podgorny <radek@podgorny.cz>
+
+pkgname=rixy-git
+_pkgname=rixy
+pkgver=48f948a
+pkgrel=1
+pkgdesc="An alternative WebUI for Guitarix"
+license=('GPL3')
+arch=('any')
+url="https://github.com/fufler/rixy"
+provides=($_pkgname)
+conflicts=($_pkgname)
+makedepends=(yarn)
+depends=(websockify)
+optdepends=('guitarix: To run Guitarix instance in the same host')
+source=('git+https://github.com/fufler/rixy.git#branch=dev'
+    'rixy.service'
+    'guitarix-pw.service'
+    '99-guitarix-pw.conf'
+    '99-rixy.conf'
+)
+sha512sums=('SKIP'
+    '970fcca63a5850eee2c646e848c160b0d93a4791d08c5fccab025b7adab4a349fb0ee3440987e9c40d52f92fcbbe0d04738b829396a07e828ab44462a55dda62'
+    '73f24fa1e49a8cb605fe3e7e0bb87aa5ed89aa8b3f5ede30857810e837402a82adc8a1f7b32e9e6b5c5c26b951b651e5e93443b211e9ce4a27dcfeccc50431b2'
+    'b578e020a38c445352728bbc2ad4f19fd4fcae5fad90bce3cc988ad55ee8d468f3baa45b09abed78fc3bdef25ca90036a699c09c79e7d6f4dd0af4b7f537197d'
+    '5e752ec1ea3321ecc0370fb47f81088719e94cf24abc60505c044dc6c1f9b2d0cdc5fd8d3872afe7579543f1c2a4c0caef38cf83bebde6d3b0c4cfa85baca971' 
+)
+
+pkgver() {
+  cd "$_pkgname"
+  git rev-parse --short HEAD
+}
+
+prepare(){
+  cd "$_pkgname"
+  yarn install
+}
+
+build() {
+  cd "$_pkgname"
+
+  yarn build
+}
+
+package() {
+  install -d -m 755 "${pkgdir}/usr/lib/systemd/user"
+  install -m 644 rixy.service "${pkgdir}/usr/lib/systemd/user/rixy.service"
+  install -m 644 guitarix-pw.service "${pkgdir}/usr/lib/systemd/user/guitarix-pw.service"
+
+  install -d -m 755 "${pkgdir}/usr/lib/environment.d/"
+  install -m 644 99-rixy.conf "${pkgdir}/usr/lib/environment.d/99-rixy.conf"
+  install -m 644 99-guitarix-pw.conf "${pkgdir}/usr/lib/environment.d/99-guitarix-pw.conf"
+
+  cd "$_pkgname"
+
+  install -d -m 755 "${pkgdir}/usr/share/${_pkgname}/js"
+  install -d -m 755 "${pkgdir}/usr/share/${_pkgname}/css"
+  install -d -m 755 "${pkgdir}/usr/share/${_pkgname}/img"
+  install -d -m 755 "${pkgdir}/usr/share/${_pkgname}/img/icons"
+
+  cd dist
+
+  find -type f -exec install -m 644 "{}" "${pkgdir}/usr/share/${_pkgname}/{}" \;
+}

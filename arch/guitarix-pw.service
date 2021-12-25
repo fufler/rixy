@@ -1,0 +1,8 @@
+[Unit]
+Description=Guitarix daemon
+
+[Service]
+ExecStart=pw-jack -s ${GUITARIX_SAMPLE_RATE} -p ${GUITARIX_SAMPLES_PERIOD} -- guitarix -N -H 127.0.0.1 -p ${GUITARIX_RPC_PORT}
+
+[Install]
+Alias=guitarix.service
