@@ -13,15 +13,5 @@ module.exports = {
       .set('@store', resolve(__dirname, 'src/store'))
       .set('@utils', resolve(__dirname, 'src/utils'))
       .set('@views', resolve(__dirname, 'src/views'))
-  },
-  pwa: {
-    name: 'Rixy',
-    short_name: 'Rixy',
-    themeColor: '#000',
-    msTileColor: '#000000',
-    backgroundColor: '#000',
-    display: 'standalone',
-    lang: 'en',
-    appleMobileWebAppStatusBarStyle: 'black-translucent'
   }
 }
